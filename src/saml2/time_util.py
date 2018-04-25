@@ -251,7 +251,8 @@ def str_to_time(timestr, format=TIME_FORMAT):
             else:
                 elem = TIME_FORMAT_WITH_FRAGMENT_ZONE.match(timestr)
                 timedata = elem.group(1) + 'Z'
-                offset = timedelta(hours=int(elem.group(4)), minutes=int(elem.group(5)))
+                offset = timedelta(hours=int(elem.group(4)),
+                                   minutes=int(elem.group(5)))
                 if elem.group(3) == '+':
                     offset = -offset
         except Exception as exc:
