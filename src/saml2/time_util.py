@@ -19,6 +19,8 @@ import six
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 TIME_FORMAT_WITH_FRAGMENT = re.compile(
     "^(\d{4,4}-\d{2,2}-\d{2,2}T\d{2,2}:\d{2,2}:\d{2,2})(\.\d*)?Z?$")
+TIME_FORMAT_WITH_FRAGMENT_ZONE = re.compile(
+    "^(\d{4,4}-\d{2,2}-\d{2,2}T\d{2,2}:\d{2,2}:\d{2,2})(\.\d*)?([+-])(\d\d):(\d\d)$")
 
 # ---------------------------------------------------------------------------
 # I'm sure this is implemented somewhere else can't find it now though, so I
@@ -241,12 +243,25 @@ def str_to_time(timestr, format=TIME_FORMAT):
     try:
         then = time.strptime(timestr, format)
     except ValueError:  # assume it's a format problem
+        offset = None
         try:
             elem = TIME_FORMAT_WITH_FRAGMENT.match(timestr)
+            if elem:
+                timedata = elem.group(1) + "Z"
+            else:
+                elem = TIME_FORMAT_WITH_FRAGMENT_ZONE.match(timestr)
+                timedata = elem.group(1) + 'Z'
+                offset = timedelta(hours=int(elem.group(4)), minutes=int(elem.group(5)))
+                if elem.group(3) == '+':
+                    offset = -offset
         except Exception as exc:
             print("Exception: %s on %s" % (exc, timestr), file=sys.stderr)
             raise
-        then = time.strptime(elem.groups()[0] + "Z", TIME_FORMAT)
+
+        then = datetime.strptime(timedata, TIME_FORMAT)
+        if offset:
+            then += offset
+        then = then.timetuple()
 
     return time.gmtime(calendar.timegm(then))
 
