@@ -124,6 +124,9 @@ def test_str_to_time():
     # some IdPs omit the trailing Z, and SAML spec is unclear if it is actually required
     t = calendar.timegm(str_to_time("2000-01-12T00:00:00"))
     assert t == 947635200
+    # some IdPs use the explicit timezone format
+    t = calendar.timegm(str_to_time("2000-01-12T00:00:00+02:00"))
+    assert t == 947635200 - 2 * 3600
 
 def test_instant():
     inst = str_to_time(instant())
