@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-
+from future.utils import python_2_unicode_compatible
 import calendar
 import logging
 import six
+
 from saml2.samlp import STATUS_VERSION_MISMATCH
 from saml2.samlp import STATUS_AUTHN_FAILED
 from saml2.samlp import STATUS_INVALID_ATTR_NAME_OR_VALUE
@@ -318,7 +319,10 @@ class StatusResponse(object):
     def _loads(self, xmldata, decode=True, origxml=None):
 
         # own copy
-        self.xmlstr = xmldata[:]
+        if isinstance(xmldata, six.binary_type):
+            self.xmlstr = xmldata[:].decode('utf-8')
+        else:
+            self.xmlstr = xmldata[:]
         logger.debug("xmlstr: %s", self.xmlstr)
         if origxml:
             self.origxml = origxml
@@ -460,7 +464,7 @@ class ManageNameIDResponse(StatusResponse):
 
 # ----------------------------------------------------------------------------
 
-
+@python_2_unicode_compatible
 class AuthnResponse(StatusResponse):
     """ This is where all the profile compliance is checked.
     This one does saml2int compliance. """
@@ -649,7 +653,7 @@ class AuthnResponse(StatusResponse):
                         self.allow_unknown_attributes)
 
     def get_identity(self):
-        """ The assertion can contain zero or one attributeStatements
+        """ The assertion can contain zero or more attributeStatements
 
         """
         ava = {}
@@ -662,9 +666,11 @@ class AuthnResponse(StatusResponse):
                             ava.update(self.read_attribute_statement(
                                 tmp_assertion.attribute_statement[0]))
             if _assertion.attribute_statement:
-                assert len(_assertion.attribute_statement) == 1
-                _attr_statem = _assertion.attribute_statement[0]
-                ava.update(self.read_attribute_statement(_attr_statem))
+                logger.debug("Assertion contains %s attribute statement(s)",
+                             (len(self.assertion.attribute_statement)))
+                for _attr_statem in _assertion.attribute_statement:
+                    logger.debug("Attribute Statement: %s" % (_attr_statem,))
+                    ava.update(self.read_attribute_statement(_attr_statem))
             if not ava:
                 logger.debug("Assertion contains no attribute statements")
         return ava
@@ -1079,15 +1085,13 @@ class AuthnResponse(StatusResponse):
                     "session_index": authn_statement.session_index}
 
     def __str__(self):
-        if not isinstance(self.xmlstr, six.string_types):
-            return "%s" % self.xmlstr.decode("utf-8")
-        return "%s" % self.xmlstr
+        return self.xmlstr
 
     def verify_recipient(self, recipient):
         """
         Verify that I'm the recipient of the assertion
-        
-        :param recipient: A URI specifying the entity or location to which an 
+
+        :param recipient: A URI specifying the entity or location to which an
             attesting entity can present the assertion.
         :return: True/False
         """
