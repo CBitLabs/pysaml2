@@ -982,7 +982,7 @@ class CryptoBackendXmlSec1(CryptoBackend):
             p_out = p_out.decode('utf-8')
             p_err = p_err.decode('utf-8')
 
-            if pof.returncode is not None and pof.returncode < 0:
+            if pof.returncode is not None and pof.returncode != 0:
                 logger.error(LOG_LINE, p_out, p_err)
                 raise XmlsecError("%d:%s" % (pof.returncode, p_err))
 
