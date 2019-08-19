@@ -1456,16 +1456,23 @@ class SecurityContext(object):
                 _certs = []
             certs = []
 
+            instance_certs = []
+
+            if len(_certs) > 1:
+                # Build the list of ones in the instance (only need to do this if there
+                # is more than one cert -- with one cert, the order doesn't matter)
+                instance_certs = ["".join(cert.split()) for cert in cert_from_instance(item)]
+
             for cert in _certs:
                 if isinstance(cert, six.string_types):
-                    certs.append(
-                        make_temp(
-                            pem_format(cert),
-                            suffix='.pem',
-                            decode=False,
-                            delete=self._xmlsec_delete_tmpfiles,
-                        )
-                    )
+                    the_cert = make_temp(pem_format(cert), suffix=".pem",
+                                         decode=False,
+                                         delete=self._xmlsec_delete_tmpfiles)
+                    if "".join(cert.split()) in instance_certs:
+                        # If it is in the instance, then put it at the front of the list
+                        certs.insert(0, the_cert)
+                    else:
+                        certs.append(the_cert)
                 else:
                     certs.append(cert)
         else:
