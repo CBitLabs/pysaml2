@@ -121,6 +121,7 @@ class FakeConfig():
     tmp_cert_file = None
     tmp_key_file = None
     validate_certificate = False
+    delete_tmpfiles = True
 
     def getattr(self, attr, default):
         return getattr(self, attr, default)
@@ -786,9 +787,9 @@ def test_xbox():
     encrypted_assertion = EncryptedAssertion()
     encrypted_assertion.add_extension_element(_ass0)
 
-    _, pre = make_temp(str(pre_encryption_part()).encode('utf-8'), decode=False)
+    tmp = make_temp(str(pre_encryption_part()).encode('utf-8'), decode=False)
     enctext = sec.crypto.encrypt(
-        str(encrypted_assertion), conf.cert_file, pre, "des-192",
+        str(encrypted_assertion), conf.cert_file, tmp.name, "des-192",
         '/*[local-name()="EncryptedAssertion"]/*[local-name()="Assertion"]')
 
     decr_text = sec.decrypt(enctext)
@@ -839,9 +840,9 @@ def test_xbox_non_ascii_ava():
     encrypted_assertion = EncryptedAssertion()
     encrypted_assertion.add_extension_element(_ass0)
 
-    _, pre = make_temp(str(pre_encryption_part()).encode('utf-8'), decode=False)
+    tmp = make_temp(str(pre_encryption_part()).encode('utf-8'), decode=False)
     enctext = sec.crypto.encrypt(
-        str(encrypted_assertion), conf.cert_file, pre, "des-192",
+        str(encrypted_assertion), conf.cert_file, tmp.name, "des-192",
         '/*[local-name()="EncryptedAssertion"]/*[local-name()="Assertion"]')
 
     decr_text = sec.decrypt(enctext)
