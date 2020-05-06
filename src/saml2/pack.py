@@ -103,7 +103,7 @@ def http_form_post_message(message, location, relay_state="",
     if relay_state:
         relay_state_input = HTML_INPUT_ELEMENT_SPEC.format(
                 name='RelayState',
-                val=_html_escape(relay_state),
+                val=_html_escape(relay_state).encode('utf-8'),
                 type='hidden')
 
     response = HTML_FORM_SPEC.format(
