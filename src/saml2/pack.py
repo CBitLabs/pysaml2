@@ -101,7 +101,7 @@ def http_form_post_message(message, location, relay_state="",
 
     relay_state_input = ""
     if relay_state:
-        if six.py3:
+        if six.PY3:
             relay_state_input = HTML_INPUT_ELEMENT_SPEC.format(
                 name='RelayState',
                 val=_html_escape(relay_state),
